@@ -12,46 +12,213 @@ from ..testing import requires
 
 @requires(parsing_library)
 def test_formula_to_composition():
+    # General covalent compounds, with states, groups, nested groups.
     assert formula_to_composition('H2O') == {1: 2, 8: 1}
-    assert formula_to_composition('Fe/3+') == {0: 3, 26: 1}
-    assert formula_to_composition('Fe+3') == {0: 3, 26: 1}
-    assert formula_to_composition('Na/+') == {0: 1, 11: 1}
-    assert formula_to_composition('Na+1') == {0: 1, 11: 1}
-    assert formula_to_composition('Na+') == {0: 1, 11: 1}
-    assert formula_to_composition('Cl/-') == {0: -1, 17: 1}
-    assert formula_to_composition('Cl-') == {0: -1, 17: 1}
+    assert formula_to_composition('H2O(cr)') == {1: 2, 8: 1}
+    assert formula_to_composition('H2O(g)') == {1: 2, 8: 1}
+    assert formula_to_composition('H2O(l)') == {1: 2, 8: 1}
+    assert formula_to_composition('H2O(s)') == {1: 2, 8: 1}
+    assert formula_to_composition('NH3') == {1: 3, 7: 1}
+    assert formula_to_composition('NH3(aq)') == {1: 3, 7: 1}
+    assert formula_to_composition('NH3(cr)') == {1: 3, 7: 1}
+    assert formula_to_composition('NH3(g)') == {1: 3, 7: 1}
+    assert formula_to_composition('NH3(l)') == {1: 3, 7: 1}
+    assert formula_to_composition('NH3(s)') == {1: 3, 7: 1}
+    assert formula_to_composition('((H2O)2OH)12') == {1: 60, 8: 36}
+    assert formula_to_composition('((H2O)2OH)12(aq)') == {1: 60, 8: 36}
+    assert formula_to_composition('((H2O)2OH)12(cr)') == {1: 60, 8: 36}
+    assert formula_to_composition('((H2O)2OH)12(g)') == {1: 60, 8: 36}
+    assert formula_to_composition('((H2O)2OH)12(l)') == {1: 60, 8: 36}
+    assert formula_to_composition('((H2O)2OH)12(s)') == {1: 60, 8: 36}
+
+    # Organic compounds, with states, structural formulas, molecular
+    # formulas, groups, nested groups.
+    assert formula_to_composition('CH4') == {1: 4, 6: 1}
+    assert formula_to_composition('CH4(aq)') == {1: 4, 6: 1}
+    assert formula_to_composition('CH4(cr)') == {1: 4, 6: 1}
+    assert formula_to_composition('CH4(g)') == {1: 4, 6: 1}
+    assert formula_to_composition('CH4(l)') == {1: 4, 6: 1}
+    assert formula_to_composition('CH4(s)') == {1: 4, 6: 1}
+
+    # Ionic compounds, with hydrates and states.
     assert formula_to_composition('NaCl') == {11: 1, 17: 1}
     assert formula_to_composition('NaCl(s)') == {11: 1, 17: 1}
-    assert formula_to_composition('Fe(SCN)2/+') == {
-        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('BaCl2') == {17: 2, 56: 1}
+    assert formula_to_composition('BaCl2(aq)') == {17: 2, 56: 1}
+    assert formula_to_composition('BaCl2(s)') == {17: 2, 56: 1}
+    assert formula_to_composition('BaCl2.2H2O(s)') == {1: 4, 8: 2, 17: 2, 56: 1}
+    assert formula_to_composition('Al2(SO4)3') == {13: 2, 16: 3, 8: 12}
+    assert formula_to_composition('Al2(SO4)3(aq)') == {13: 2, 16: 3, 8: 12}
+    assert formula_to_composition('Al2(SO4)3(s)') == {13: 2, 16: 3, 8: 12}
+    assert formula_to_composition('Na2CO3') == {11: 2, 6: 1, 8: 3}
+    assert formula_to_composition('Na2CO3(s)') == {11: 2, 6: 1, 8: 3}
+    assert formula_to_composition('Na2CO3(aq)') == {11: 2, 6: 1, 8: 3}
+    assert formula_to_composition('Na2CO3.7H2O') == {11: 2, 6: 1, 8: 10, 1: 14}
+    assert formula_to_composition('Na2CO3.7H2O(s)') == {11: 2, 6: 1, 8: 10, 1: 14}
+
+    # Ions, with states and charge variations.
+    # Special case:  electrons and charge
+    #     electron/negative charge:  {0, -1}
+    #     positive charge:  {0, 1}
+    assert formula_to_composition('e-') == {0: -1}
+    assert formula_to_composition('e-(aq)') == {0: -1}
+    assert formula_to_composition('e/-') == {0: -1}
+    assert formula_to_composition('e/-(aq)') == {0: -1}
+    assert formula_to_composition('e-1') == {0: -1}
+    assert formula_to_composition('e-1(aq)') == {0: -1}
+    assert formula_to_composition('e/-1') == {0: -1}
+    assert formula_to_composition('e/-1(aq)') == {0: -1}
+    assert formula_to_composition('e/1-') == {0: -1}
+    assert formula_to_composition('e/1-(aq)') == {0: -1}
+
+    assert formula_to_composition('Cl-') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl-1') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl/-') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl/-1') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl/1-') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl-(aq)') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl-1(aq)') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl/-(aq)') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl/-1(aq)') == {0: -1, 17: 1}
+    assert formula_to_composition('Cl/1-(aq)') == {0: -1, 17: 1}
+
+    assert formula_to_composition('O-2') == {0: -2, 8: 1}
+    assert formula_to_composition('O-2(aq)') == {0: -2, 8: 1}
+    assert formula_to_composition('O/-2') == {0: -2, 8: 1}
+    assert formula_to_composition('O/-2(aq)') == {0: -2, 8: 1}
+    assert formula_to_composition('O/2-') == {0: -2, 8: 1}
+    assert formula_to_composition('O/2-(aq)') == {0: -2, 8: 1}
+
+    assert formula_to_composition('P-3') == {0: -3, 15: 1}
+    assert formula_to_composition('P-3(aq)') == {0: -3, 15: 1}
+    assert formula_to_composition('P/-3') == {0: -3, 15: 1}
+    assert formula_to_composition('P/-3(aq)') == {0: -3, 15: 1}
+    assert formula_to_composition('P/3-') == {0: -3, 15: 1}
+    assert formula_to_composition('P/3-(aq)') == {0: -3, 15: 1}
+
+    assert formula_to_composition('Na+') == {0: 1, 11: 1}
+    assert formula_to_composition('Na+1') == {0: 1, 11: 1}
+    assert formula_to_composition('Na/+') == {0: 1, 11: 1}
+    assert formula_to_composition('Na/+1') == {0: 1, 11: 1}
+    assert formula_to_composition('Na/1+') == {0: 1, 11: 1}
+    assert formula_to_composition('Na+(aq)') == {0: 1, 11: 1}
+    assert formula_to_composition('Na+1(aq)') == {0: 1, 11: 1}
+    assert formula_to_composition('Na/+(aq)') == {0: 1, 11: 1}
+    assert formula_to_composition('Na/+1(aq)') == {0: 1, 11: 1}
+    assert formula_to_composition('Na/1+(aq)') == {0: 1, 11: 1}
+
+    assert formula_to_composition('Ca+2') == {0: 2, 20: 1}
+    assert formula_to_composition('Ca+2(aq)') == {0: 2, 20: 1}
+    assert formula_to_composition('Ca/+2') == {0: 2, 20: 1}
+    assert formula_to_composition('Ca/+2(aq)') == {0: 2, 20: 1}
+    assert formula_to_composition('Ca/2+') == {0: 2, 20: 1}
+    assert formula_to_composition('Ca/2+(aq)') == {0: 2, 20: 1}
+
+    assert formula_to_composition('Fe/3+') == {0: 3, 26: 1}
+    assert formula_to_composition('Fe/+3') == {0: 3, 26: 1}
+    assert formula_to_composition('Fe+3') == {0: 3, 26: 1}
+    assert formula_to_composition('Fe/3+(aq)') == {0: 3, 26: 1}
+    assert formula_to_composition('Fe/+3(aq)') == {0: 3, 26: 1}
+    assert formula_to_composition('Fe+3(aq)') == {0: 3, 26: 1}
+
+    # Polyatomic ions.
+    assert formula_to_composition('OH-') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH-(aq)') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH-1') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH-1(aq)') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH/-') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH/-(aq)') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH/-1') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH/-1(aq)') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH/1-') == {0: -1, 8: 1, 1: 1}
+    assert formula_to_composition('OH/1-(aq)') == {0: -1, 8: 1, 1: 1}
+
+    assert formula_to_composition('SO4-2') == {0: -2, 16: 1, 8: 4}
+    assert formula_to_composition('SO4-2(aq)') == {0: -2, 16: 1, 8: 4}
+    assert formula_to_composition('SO4/-2') == {0: -2, 16: 1, 8: 4}
+    assert formula_to_composition('SO4/-2(aq)') == {0: -2, 16: 1, 8: 4}
+    assert formula_to_composition('SO4/2-') == {0: -2, 16: 1, 8: 4}
+    assert formula_to_composition('SO4/2-(aq)') == {0: -2, 16: 1, 8: 4}
+
+    assert formula_to_composition('PO4-3') == {0: -3, 15: 1, 8: 4}
+    assert formula_to_composition('PO4-3(aq)') == {0: -3, 15: 1, 8: 4}
+    assert formula_to_composition('PO4/-3') == {0: -3, 15: 1, 8: 4}
+    assert formula_to_composition('PO4/-3(aq)') == {0: -3, 15: 1, 8: 4}
+    assert formula_to_composition('PO4/3-') == {0: -3, 15: 1, 8: 4}
+    assert formula_to_composition('PO4/3-(aq)') == {0: -3, 15: 1, 8: 4}
+
+    assert formula_to_composition('NH4+') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4+(aq)') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4+1') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4+1(aq)') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4/+') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4/+(aq)') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4/+1') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4/+1(aq)') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4/1+') == {0: 1, 7: 1, 1: 4}
+    assert formula_to_composition('NH4/1+(aq)') == {0: 1, 7: 1, 1: 4}
+
     assert formula_to_composition('Fe(SCN)2+') == {
         0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
-    assert formula_to_composition('Fe(SCN)2+1') == {
+    assert formula_to_composition('Fe(SCN)2+(aq)') == {
         0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
-    assert formula_to_composition('((H2O)2OH)12') == {1: 60, 8: 36}
+    assert formula_to_composition('Fe(SCN)2+1(aq)') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('Fe(SCN)2/+') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('Fe(SCN)2/+(aq)') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('Fe(SCN)2/+1') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('Fe(SCN)2/+1(aq)') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('Fe(SCN)2/1+') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
+    assert formula_to_composition('Fe(SCN)2/1+(aq)') == {
+        0: 1, 6: 2, 7: 2, 16: 2, 26: 1}
 
-    # Special case: solvated electron:
-    assert formula_to_composition('e-') == {0: -1}
-    assert formula_to_composition('e-1') == {0: -1}
-    assert formula_to_composition('e-(aq)') == {0: -1}
-    assert formula_to_composition('SO4-2(aq)') == {0: -2, 8: 4, 16: 1}
+    # Complexes, many cases.
+    # ion/complex, complex/ion, complex/complex
+    # hydrates, states
+    # ionic complexes
+    # subgrouped complexes ([Fe(CN)6]-3) and not ([FeCl6]-3)
+    assert formula_to_composition('K4[Fe(CN)6]') == {19: 4, 26: 6, 6: 6, 7: 6}
+    assert formula_to_composition('K4[Fe(CN)6](aq)') == {19: 4, 26: 6, 6: 6, 7: 6}
+    assert formula_to_composition('K4[Fe(CN)6](s)') == {19: 4, 26: 6, 6: 6, 7: 6}
+    assert formula_to_composition('K3[Fe(CN)6]') == {19: 3, 26: 6, 6: 6, 7: 6}
+    assert formula_to_composition('K3[Fe(CN)6](aq)') == {19: 3, 26: 6, 6: 6, 7: 6}
+    assert formula_to_composition('K3[Fe(CN)6](s)') == {19: 3, 26: 6, 6: 6, 7: 6}
+    assert formula_to_composition('[Fe(H2O)6][Fe(CN)6].19H2O') == {26: 2, 1: 50, 8: 25, 6: 6, 7: 7}
+    assert formula_to_composition('[Fe(H2O)6][Fe(CN)6].19H2O(s)') == {26: 2, 1: 50, 8: 25, 6: 6, 7: 7}
 
-    # prefixes and suffixes
+    # Non-integer subscripts, with states.
+    # See also phases, below.
+    assert formula_to_composition('Ca2.832Fe0.6285Mg5.395(CO3)6') == {20: 2.832, 26: 0.6285, 12: 5.395, 6: 6, 8: 18}
+    assert formula_to_composition('Ca2.832Fe0.6285Mg5.395(CO3)6(s)') == {20: 2.832, 26: 0.6285, 12: 5.395, 6: 6, 8: 18}
+
+    # Radicals, with charges and states.
+    assert formula_to_composition('.NO2') == {7: 1, 8: 2}
     assert formula_to_composition('.NO2(g)') == {7: 1, 8: 2}
     assert formula_to_composition('.NH2') == {1: 2, 7: 1}
+    assert formula_to_composition('.NH2(g)') == {1: 2, 7: 1}
     assert formula_to_composition('ONOOH') == {1: 1, 7: 1, 8: 3}
+    assert formula_to_composition('ONOOH(g)') == {1: 1, 7: 1, 8: 3}
     assert formula_to_composition('.ONOO') == {7: 1, 8: 3}
-    assert formula_to_composition('.NO3/2-') == {0: -2, 7: 1, 8: 3}
+    assert formula_to_composition('.ONOO(g)') == {7: 1, 8: 3}
     assert formula_to_composition('.NO3-2') == {0: -2, 7: 1, 8: 3}
+    assert formula_to_composition('.NO3-2(g)') == {0: -2, 7: 1, 8: 3}
+    assert formula_to_composition('.NO3/-2') == {0: -2, 7: 1, 8: 3}
+    assert formula_to_composition('.NO3/-2(g)') == {0: -2, 7: 1, 8: 3}
+    assert formula_to_composition('.NO3/2-') == {0: -2, 7: 1, 8: 3}
+    assert formula_to_composition('.NO3/2-(g)') == {0: -2, 7: 1, 8: 3}
 
+    # Structures should (?) fail.
     with pytest.raises(ValueError):
         formula_to_composition('F-F')
 
+    # Phases, with states and non-integer subscripts.
     assert formula_to_composition('alpha-FeOOH(s)') == {1: 1, 8: 2, 26: 1}
     assert formula_to_composition('epsilon-Zn(OH)2(s)') == {1: 2, 8: 2, 30: 1}
-
-    # crystal water
-    assert formula_to_composition('Na2CO3.7H2O(s)') == {11: 2, 6: 1, 8: 10, 1: 14}
 
 
 @requires(parsing_library)
