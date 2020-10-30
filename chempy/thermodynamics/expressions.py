@@ -16,9 +16,9 @@ class MassActionEq(Expr):
         for exp_factor, stoichs in [(1, equilibrium.prod), (-1, equilibrium.reac)]:
             for k, v in stoichs.items():
                 if result is None:
-                    result = variables[k]**(exp_factor*v)
+                    result = variables[k]**(exp_factor * v)
                 else:
-                    result *= variables[k]**(exp_factor*v)
+                    result *= variables[k]**(exp_factor * v)
         return result
 
     def eq_const(self, variables, backend=math, **kwargs):
@@ -50,4 +50,4 @@ class GibbsEqConst(MassActionEq):
     def eq_const(self, variables, backend=math, **kwargs):
         dH_over_R, dS_over_R = self.all_args(variables, backend=backend)
         T, = self.all_params(variables, backend=backend)
-        return backend.exp(dS_over_R - dH_over_R/T)
+        return backend.exp(dS_over_R - dH_over_R / T)
