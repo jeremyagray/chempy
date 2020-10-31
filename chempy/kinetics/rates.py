@@ -104,7 +104,7 @@ def mk_Radiolytic(*doserate_names):
         def args_dimensionality(self, reaction):
             N = base_registry['amount']
             E = get_derived_unit(base_registry, 'energy')
-            return (dict(zip(dimension_codes, N/E)),)*self.nargs
+            return (dict(zip(dimension_codes, N / E)),) * self.nargs
 
         def g_values(self, *args, **kwargs):
             return OrderedDict(zip(self.parameter_keys[1:], self.all_args(*args, **kwargs)))
@@ -115,7 +115,7 @@ def mk_Radiolytic(*doserate_names):
             return g_val
 
         def __call__(self, variables, backend=math, reaction=None, **kwargs):
-            return variables['density']*reduce(add, [variables[k]*gval for k, gval in zip(
+            return variables['density'] * reduce(add, [variables[k] * gval for k, gval in zip(
                 self.parameter_keys[1:], self.all_args(variables, backend=backend, **kwargs))])
 
     _Radiolytic.__name__ = 'Radiolytic' if doserate_names == ('',) else ('Radiolytic_' + '_'.join(doserate_names))
@@ -165,7 +165,7 @@ class MassAction(RateExpr, UnaryWrapper):
 
     def args_dimensionality(self, reaction):
         order = reaction.order()
-        return ({'time': -1, 'amount': 1-order, 'length': 3*(order - 1)},)
+        return ({'time': -1, 'amount': 1 - order, 'length': 3 * (order - 1)},)
 
     def active_conc_prod(self, variables, backend=math, reaction=None):
         result = 1
@@ -178,7 +178,7 @@ class MassAction(RateExpr, UnaryWrapper):
         return rat_c
 
     def __call__(self, variables, backend=math, reaction=None, **kwargs):
-        return self.rate_coeff(variables, backend=backend, reaction=reaction)*self.active_conc_prod(
+        return self.rate_coeff(variables, backend=backend, reaction=reaction) * self.active_conc_prod(
             variables, backend=backend, reaction=reaction, **kwargs)
 
     def string(self, *args, **kwargs):
@@ -228,7 +228,7 @@ class Arrhenius(Expr):
         order = reaction.order()
         return (
             {'time': -1,
-             'amount': 1-order, 'length': 3*(order - 1)},
+             'amount': 1 - order, 'length': 3 * (order - 1)},
             {'temperature': 1},
         )
 
@@ -238,7 +238,7 @@ class Arrhenius(Expr):
             Ea_over_R = Ea_over_R.simplified
         except AttributeError:
             pass
-        return A*backend.exp(-Ea_over_R/variables['temperature'])
+        return A * backend.exp(-Ea_over_R / variables['temperature'])
 
 
 class Eyring(Expr):
@@ -248,14 +248,14 @@ class Eyring(Expr):
     """
 
     argument_names = ('kB_h_times_exp_dS_R', 'dH_over_R', 'conc0')
-    argument_defaults = (1*_molar,)
+    argument_defaults = (1 * _molar,)
     parameter_keys = ('temperature',)
 
     def args_dimensionality(self, reaction):
         order = reaction.order()
         return (
             {'time': -1, 'temperature': -1,
-             'amount': 1-order, 'length': 3*(order - 1)},
+             'amount': 1 - order, 'length': 3 * (order - 1)},
             {'temperature': 1},
             concentration
         )
@@ -263,12 +263,12 @@ class Eyring(Expr):
     def __call__(self, variables, backend=math, **kwargs):
         c0, c1, conc0 = self.all_args(variables, backend=backend, **kwargs)
         T = variables['temperature']
-        return c0*T*backend.exp(-c1/T)*conc0**(1-kwargs['reaction'].order())
+        return c0 * T * backend.exp(-c1 / T) * conc0**(1 - kwargs['reaction'].order())
 
 
 class EyringHS(Expr):
     argument_names = ('dH', 'dS', 'c0')
-    argument_defaults = (1*_molar,)
+    argument_defaults = (1 * _molar,)
     parameter_keys = ('temperature', 'molar_gas_constant',
                       'Boltzmann_constant', 'Planck_constant')
 
@@ -282,7 +282,7 @@ class EyringHS(Expr):
     def __call__(self, variables, backend=math, reaction=None, **kwargs):
         dH, dS, c0 = self.all_args(variables, backend=backend, **kwargs)
         T, R, kB, h = [variables[k] for k in self.parameter_keys]
-        return kB/h*T*backend.exp(-(dH-T*dS)/(R*T))*c0**(1-reaction.order())
+        return kB / h * T * backend.exp(-(dH - T * dS) / (R * T)) * c0**(1 - reaction.order())
 
 
 class RampedTemp(Expr):
@@ -295,7 +295,7 @@ class RampedTemp(Expr):
 
     def __call__(self, variables, backend=None, **kwargs):
         T0, dTdt = self.all_args(variables, backend=backend, **kwargs)
-        return T0 + dTdt*variables['time']
+        return T0 + dTdt * variables['time']
 
 
 class SinTemp(Expr):
@@ -307,4 +307,4 @@ class SinTemp(Expr):
 
     def __call__(self, variables, backend=math, **kwargs):
         Tbase, Tamp, angvel, phase = self.all_args(variables, backend=backend, **kwargs)
-        return Tbase + Tamp*backend.sin(angvel*variables['time'] + phase)
+        return Tbase + Tamp * backend.sin(angvel * variables['time'] + phase)

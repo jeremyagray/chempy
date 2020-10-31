@@ -25,10 +25,10 @@ def _get_kB_over_h(constants=None, units=None):
         if units is not None:
             s = units.second
             K = units.kelvin
-            kB_over_h /= s*K
+            kB_over_h /= s * K
     else:
-        kB_over_h = (constants.Boltzmann_constant /
-                     constants.Planck_constant)
+        kB_over_h = (constants.Boltzmann_constant
+                     / constants.Planck_constant)
     return kB_over_h
 
 
@@ -61,16 +61,16 @@ def eyring_equation(dH, dS, T, constants=None, units=None, backend=None):
     kB_over_h = _get_kB_over_h(constants, units)
 
     try:
-        RT = (R*T).rescale(dH.dimensionality)
+        RT = (R * T).rescale(dH.dimensionality)
     except AttributeError:
-        RT = R*T
+        RT = R * T
 
     try:
         kB_over_h = kB_over_h.simplified
     except AttributeError:
         pass
 
-    return kB_over_h*T*be.exp(dS/R)*be.exp(-dH/RT)
+    return kB_over_h * T * be.exp(dS / R) * be .exp(-dH / RT)
 
 
 def fit_eyring_equation(T, k, kerr=None, linearized=False, constants=None, units=None):
@@ -86,8 +86,8 @@ def fit_eyring_equation(T, k, kerr=None, linearized=False, constants=None, units
     """
     R = _get_R(constants, units)
     ln_kb_over_h = math.log(_get_kB_over_h(constants, units))
-    return _fit(T, k, kerr, eyring_equation, lambda T, k: 1/T, lambda T, k: np.log(k/T),
-                [lambda p: -p[1]*R, lambda p: R*(p[0] - ln_kb_over_h)], linearized=linearized)
+    return _fit(T, k, kerr, eyring_equation, lambda T, k: 1 / T, lambda T, k: np.log(k / T),
+                [lambda p: -p[1] * R, lambda p: R * (p[0] - ln_kb_over_h)], linearized=linearized)
 
 
 class EyringParam(defaultnamedtuple('EyringParam', 'dH dS ref', [None])):
@@ -131,11 +131,11 @@ class EyringParam(defaultnamedtuple('EyringParam', 'dH dS ref', [None])):
     def kB_h_times_exp_dS_R(self, constants=None, units=None, backend=math):
         R = _get_R(constants, units)
         kB_over_h = _get_kB_over_h(constants, units)
-        return kB_over_h * backend.exp(self.dS/R)
+        return kB_over_h * backend.exp(self.dS / R)
 
     def dH_over_R(self, constants=None, units=None, backend=None):
         R = _get_R(constants, units)
-        return self.dH/R
+        return self.dH / R
 
     def as_RateExpr(self, unique_keys=None, constants=None, units=None, backend=math):
         from .rates import Eyring, MassAction

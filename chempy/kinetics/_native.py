@@ -150,17 +150,17 @@ def get_native(rsys, odesys, integrator, skip_keys=(0,), steady_state_root=False
         kw['namespace_override']['p_nroots'] = ' return %d; ' % len(conc_roots)
         kw['namespace_override']['p_roots'] = (
             ''.join(['    out[%(i)d] = y[%(j)d] - m_special_settings[%(i)d];\n' %
-                     dict(i=i, j=odesys.names.index(k)) for i, k in enumerate(conc_roots)]) +
-            '    return AnyODE::Status::success;\n'
+                     dict(i=i, j=odesys.names.index(k)) for i, k in enumerate(conc_roots)])
+            + '    return AnyODE::Status::success;\n'
         )
         if 'p_constructor' not in ns_extend:
             ns_extend['p_constructor'] = []
         ns_extend['p_constructor'] += [
-            'if (m_special_settings.size() != %d) throw std::runtime_error("special_settings missing");' %
-            len(conc_roots)
+            'if (m_special_settings.size() != %d) throw std::runtime_error("special_settings missing");'
+            % len(conc_roots)
         ]
 
     if 'p_includes' not in ns_extend:
         ns_extend['p_includes'] = set()
-    ns_extend['p_includes'] |= {"<type_traits>",  "<vector>"}
+    ns_extend['p_includes'] |= {"<type_traits>", "<vector>"}
     return native_sys[integrator].from_other(odesys, namespace_extend=ns_extend, **kw)

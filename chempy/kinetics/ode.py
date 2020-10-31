@@ -74,7 +74,7 @@ def law_of_mass_action_rates(conc, rsys, variables=None):
             for substance_key, coeff in rxn.reac.items():
                 s_idx = rsys.as_substance_index(substance_key)
                 rate *= conc[s_idx]**coeff
-            yield rate*rxn.param
+            yield rate * rxn.param
 
 
 def dCdt_list(rsys, rates):
@@ -96,11 +96,11 @@ def dCdt_list(rsys, rates):
     [-0.0054, 0.0054, 0.0054]
 
     """
-    f = [0]*rsys.ns
+    f = [0] * rsys.ns
     net_stoichs = rsys.net_stoichs()
     for idx_s in range(rsys.ns):
         for idx_r in range(rsys.nr):
-            f[idx_s] += net_stoichs[idx_r, idx_s]*rates[idx_r]
+            f[idx_s] += net_stoichs[idx_r, idx_s] * rates[idx_r]
     return f
 
 
@@ -179,7 +179,7 @@ def get_odesys(rsys, include_params=True, substitutions=None, SymbolicSys=None, 
 
     cstr_fr_fc = (
         'feedratio',
-        OrderedDict([(sk, 'fc_'+sk) for sk in rsys.substances])
+        OrderedDict([(sk, 'fc_' + sk) for sk in rsys.substances])
     ) if cstr is True else cstr
 
     if cstr_fr_fc:
@@ -190,7 +190,7 @@ def get_odesys(rsys, include_params=True, substitutions=None, SymbolicSys=None, 
     def _reg_unique_unit(k, arg_dim, idx):
         if unit_registry is None:
             return
-        unique_units[k] = reduce(mul, [1]+[unit_registry[dim]**v for dim, v in arg_dim[idx].items()])
+        unique_units[k] = reduce(mul, [1] + [unit_registry[dim]**v for dim, v in arg_dim[idx].items()])
 
     def _get_arg_dim(expr, rxn):
         if unit_registry is None:
@@ -288,13 +288,13 @@ def get_odesys(rsys, include_params=True, substitutions=None, SymbolicSys=None, 
         conc_unit = get_derived_unit(unit_registry, 'concentration')
 
         def post_processor(x, y, p):
-            time = x*time_unit
+            time = x * time_unit
             if output_time_unit is not None:
                 time = rescale(time, output_time_unit)
-            conc = y*conc_unit
+            conc = y * conc_unit
             if output_conc_unit is not None:
                 conc = rescale(conc, output_conc_unit)
-            return time, conc, np.array([elem*p_unit for elem, p_unit in zip(p.T, p_units)], dtype=object).T
+            return time, conc, np.array([elem * p_unit for elem, p_unit in zip(p.T, p_units)], dtype=object).T
 
         kwargs['to_arrays_callbacks'] = (
             lambda x: to_unitless(x, time_unit),
@@ -359,9 +359,9 @@ def get_odesys(rsys, include_params=True, substitutions=None, SymbolicSys=None, 
                 if fcomp == 0:
                     h.append(float('inf'))
                 elif fcomp > 0:
-                    h.append((upper_bounds[idx] - _y[idx])/fcomp)
+                    h.append((upper_bounds[idx] - _y[idx]) / fcomp)
                 else:  # fcomp < 0
-                    h.append(-_y[idx]/fcomp)
+                    h.append(-_y[idx] / fcomp)
             min_h = min(h)
             return min(min_h, 1)
 
@@ -390,9 +390,9 @@ def get_odesys(rsys, include_params=True, substitutions=None, SymbolicSys=None, 
                         if rA[ri, idx] == 0:
                             continue
                         if _preferred is None or key in _preferred:
-                            terms = [rA[ri, di]*(odesys.dep[di] - y0[odesys.dep[di]])
+                            terms = [rA[ri, di] * (odesys.dep[di] - y0[odesys.dep[di]])
                                      for di in range(ci1st, odesys.ny) if di != idx]
-                            analytic_exprs[odesys[key]] = y0[odesys.dep[idx]] - sum(terms)/rA[ri, idx]
+                            analytic_exprs[odesys[key]] = y0[odesys.dep[idx]] - sum(terms) / rA[ri, idx]
                             if _preferred is not None:
                                 _preferred.remove(key)
                             break
@@ -637,19 +637,19 @@ def _validate(conditions, rsys, symbols, odesys, backend=None, transform=None, i
         def transform(arg):
             expr = backend.logcombine(arg, force=True)
             v, w = map(backend.Wild, 'v w'.split())
-            expr = expr.replace(backend.log(w**v), v*backend.log(w))
+            expr = expr.replace(backend.log(w**v), v * backend.log(w))
             return expr
 
     args = [symbols[key] for key in conditions]
-    seen = [False]*len(args)
+    seen = [False] * len(args)
     rates = {}
     for k, v in rsys.rates(symbols).items():
         expr = transform(v)
         if expr == 0:
-            rate = 0 * u.molar/u.second
+            rate = 0 * u.molar / u.second
         else:
             rate = backend.lambdify(args, expr)(*conditions.values())
-            to_unitless(rate, u.molar/u.second)
+            to_unitless(rate, u.molar / u.second)
         rates[k] = rate
         seen = [b or a in expr.free_symbols for b, a in zip(seen, args)]
     not_seen = [a for s, a in zip(seen, args) if not s]

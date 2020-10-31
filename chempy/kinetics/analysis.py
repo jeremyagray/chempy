@@ -20,15 +20,16 @@ def _dominant_reaction_effects(substance_key, rsys, rates, linthreshy, eqk1, eqk
     reaction_effects = rsys.per_reaction_effect_on_substance(substance_key)
     data = []
     for ri, n in reaction_effects.items():
-        tot += n*rates[..., ri]
+        tot += n * rates[..., ri]
         if ri in eqk1:
             otheri = eqk2[eqk1.index(ri)]
-            y = n*rates[..., ri] + reaction_effects[otheri]*rates[..., otheri]
+            y = n * rates[..., ri]
+            + reaction_effects[otheri] * rates[..., otheri]
             rxn = eqs[eqk1.index(ri)]
         elif ri in eqk2:
             continue
         else:
-            y = n*rates[..., ri]
+            y = n * rates[..., ri]
             rxn = rsys.rxns[ri]
         if np.all(np.abs(y) < linthreshy):
             continue
@@ -77,17 +78,17 @@ def plot_reaction_contributions(
     if unit_registry is not None:
         time_unit = get_derived_unit(unit_registry, 'time')
         conc_unit = get_derived_unit(unit_registry, 'concentration')
-        rates = to_unitless(rates*conc_unit/time_unit, u.molar/u.second)
+        rates = to_unitless(rates * conc_unit / time_unit, u.molar / u.second)
 
     eqk1, eqk2, eqs = _combine_rxns_to_eq(rsys) if combine_equilibria else ([], [], [])
 
     for sk, ax in zip(substance_keys, axes):
         data, tot = _dominant_reaction_effects(sk, rsys, rates, linthreshy, eqk1, eqk2, eqs)
-        factor = 1/xyp[1][:, rsys.as_substance_index(sk)] if relative else 1
+        factor = 1 / xyp[1][:, rsys.as_substance_index(sk)] if relative else 1
         if total:
-            ax.plot(varied, factor*tot, c='k', label='Total', linewidth=2, ls=':')
+            ax.plot(varied, factor * tot, c='k', label='Total', linewidth=2, ls=':')
         for y, rxn in sorted(data, key=lambda args: args[0][-1], reverse=True):
-            ax.plot(varied, factor*y,
+            ax.plot(varied, factor * y,
                     label=r'$\mathrm{%s}$' % rxn.latex(rsys.substances))
 
         if rsys.substances[sk].latex_name is None:

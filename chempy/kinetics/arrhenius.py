@@ -33,8 +33,8 @@ def _fit(T, k, kerr, func, lin_x, lin_y, backtransfm, linearized=False):
     if kerr is None:
         lin_yerr = 1
     else:
-        lin_yerr = (abs(lin_y(k - kerr, T) - _lin_y) +
-                    abs(lin_y(k + kerr, T) - _lin_y))/2
+        lin_yerr = (abs(lin_y(k - kerr, T) - _lin_y)
+                    + abs(lin_y(k + kerr, T) - _lin_y)) / 2
 
     lopt = _fit_linearized(backtransfm, lin_x(T, k), _lin_y, lin_yerr)
     if linearized:
@@ -51,7 +51,7 @@ def _get_R(constants=None, units=None):
             J = units.Joule
             K = units.Kelvin
             mol = units.mol
-            R *= J/mol/K
+            R *= J / mol / K
     else:
         R = constants.molar_gas_constant.simplified
     return R
@@ -84,10 +84,10 @@ def arrhenius_equation(A, Ea, T, constants=None, units=None, backend=None):
     be = get_backend(backend)
     R = _get_R(constants, units)
     try:
-        RT = (R*T).rescale(Ea.dimensionality)
+        RT = (R * T).rescale(Ea.dimensionality)
     except AttributeError:
-        RT = R*T
-    return A*be.exp(-Ea/RT)
+        RT = R * T
+    return A * be.exp(-Ea / RT)
 
 
 def fit_arrhenius_equation(T, k, kerr=None, linearized=False, constants=None, units=None):
@@ -101,8 +101,8 @@ def fit_arrhenius_equation(T, k, kerr=None, linearized=False, constants=None, un
     linearized : bool
 
     """
-    return _fit(T, k, kerr, arrhenius_equation, lambda T, k: 1/T, lambda T, k: np.log(k),
-                [lambda p: np.exp(p[0]), lambda p: -p[1]*_get_R(constants, units)], linearized=linearized)
+    return _fit(T, k, kerr, arrhenius_equation, lambda T, k: 1 / T, lambda T, k: np.log(k),
+                [lambda p: np.exp(p[0]), lambda p: -p[1] * _get_R(constants, units)], linearized=linearized)
 
 
 def _fit_arrhenius_equation(T, k, kerr=None, linearized=False):
@@ -120,9 +120,9 @@ def _fit_arrhenius_equation(T, k, kerr=None, linearized=False):
         raise ValueError("k and T needs to be of equal length.")
     from math import exp
     import numpy as np
-    p = np.polyfit(1/T, np.log(k), 1)
+    p = np.polyfit(1 / T, np.log(k), 1)
     R = _get_R(constants=None, units=None)
-    Ea = -R*p[0]
+    Ea = -R * p[0]
     A = exp(p[1])
     if linearized:
         return A, Ea
@@ -130,7 +130,7 @@ def _fit_arrhenius_equation(T, k, kerr=None, linearized=False):
     if kerr is None:
         weights = None
     else:
-        weights = 1/kerr**2
+        weights = 1 / kerr**2
     popt, pcov = curve_fit(arrhenius_equation, T, k, [A, Ea], weights)
     return popt, pcov
 
@@ -179,7 +179,7 @@ class ArrheniusParam(defaultnamedtuple('ArrheniusParam', 'A Ea ref', [None])):
         R = _get_R(constants, units)
         if backend is None:
             from chempy.units import patched_numpy as backend
-        return cls(k*backend.exp(Ea/R/T), Ea, **kwargs)
+        return cls(k * backend.exp(Ea / R / T), Ea, **kwargs)
 
     @classmethod
     def from_fit_of_data(cls, T, k, kerr=None, **kwargs):
@@ -205,7 +205,7 @@ class ArrheniusParam(defaultnamedtuple('ArrheniusParam', 'A Ea ref', [None])):
                                   units=units, backend=backend)
 
     def Ea_over_R(self, constants, units, backend=None):
-        return self.Ea/_get_R(constants, units)
+        return self.Ea / _get_R(constants, units)
 
     def as_RateExpr(self, unique_keys=None, constants=None, units=None, backend=None):
         from .rates import Arrhenius, MassAction

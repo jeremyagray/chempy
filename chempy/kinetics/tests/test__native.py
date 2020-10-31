@@ -25,25 +25,25 @@ from .._native import get_native
 
 decay_analytic = {
     0: lambda y0, k, t: (
-        y0[0] * np.exp(-k[0]*t)),
+        y0[0] * np.exp(-k[0] * t)),
     1: lambda y0, k, t: (
-        y0[1] * np.exp(-k[1] * t) + y0[0] * k[0] / (k[1] - k[0]) *
-        (np.exp(-k[0]*t) - np.exp(-k[1]*t))),
+        y0[1] * np.exp(-k[1] * t) + y0[0] * k[0] / (k[1] - k[0])
+        * (np.exp(-k[0] * t) - np.exp(-k[1] * t))),
     2: lambda y0, k, t: (
-        y0[2] * np.exp(-k[2] * t) + y0[1] * k[1] / (k[2] - k[1]) *
-        (np.exp(-k[1]*t) - np.exp(-k[2]*t)) +
-        k[1] * k[0] * y0[0] / (k[1] - k[0]) *
-        (1 / (k[2] - k[0]) * (np.exp(-k[0]*t) - np.exp(-k[2]*t)) -
-         1 / (k[2] - k[1]) * (np.exp(-k[1]*t) - np.exp(-k[2]*t))))
+        y0[2] * np.exp(-k[2] * t) + y0[1] * k[1] / (k[2] - k[1])
+        * (np.exp(-k[1] * t) - np.exp(-k[2] * t))
+        + k[1] * k[0] * y0[0] / (k[1] - k[0])
+        * (1 / (k[2] - k[0]) * (np.exp(-k[0] * t) - np.exp(-k[2] * t))
+           - 1 / (k[2] - k[1]) * (np.exp(-k[1] * t) - np.exp(-k[2] * t))))
 }
 
 
 def decay_get_Cref(k, y0, tout):
-    coeffs = list(k) + [0]*(3-len(k))
+    coeffs = list(k) + [0] * (3 - len(k))
 
     return np.column_stack([
         decay_analytic[i](y0, coeffs, tout) for i in range(
-            min(3, len(k)+1))])
+            min(3, len(k) + 1))])
 
 
 @pytest.mark.veryslow
@@ -77,7 +77,7 @@ def test_get_native__first_step(solve):
     xout2, yout2, info2 = native.integrate(*args, **kwargs)
     ref1 = decay_get_Cref(rate_coeffs, [c0[key] for key in native.names], xout1)
     ref2 = decay_get_Cref(rate_coeffs, [c0[key] for key in native.names], xout2)
-    allclose_kw = dict(atol=kwargs['atol']*forgive, rtol=kwargs['rtol']*forgive)
+    allclose_kw = dict(atol=kwargs['atol'] * forgive, rtol=kwargs['rtol'] * forgive)
 
     assert np.allclose(yout1[:, :3], ref1, **allclose_kw)
 
@@ -116,39 +116,41 @@ def test_get_native__named_parameter__units(dep_scaling):
     from pyodesys.symbolic import ScaledSys
     kwargs = {} if dep_scaling == 1 else dict(SymbolicSys=ScaledSys, dep_scaling=dep_scaling)
     odesys, extra = get_odesys(rsys, include_params=False, unit_registry=SI_base_registry, **kwargs)
-    c0 = {'H': 42e-6*u.molar, 'H2': 17*u.micromolar}
+    c0 = {'H': 42e-6 * u.molar, 'H2': 17 * u.micromolar}
     native = get_native(rsys, odesys, 'cvode')
-    tend = 7*60*u.minute
-    g_rho_Ddot = g, rho, Ddot = 2*u.per100eV, 998*u.g/u.dm3, 314*u.Gy/u.hour
+    tend = 7 * 60 * u.minute
+    g_rho_Ddot = g, rho, Ddot = 2 * u.per100eV, 998 * u.g / u.dm3, 314 * u.Gy / u.hour
     params = {
         'p': reduce(mul, g_rho_Ddot),
-        'k2': 53/u.molar/u.minute
+        'k2': 53 / u.molar / u.minute
     }
     result = native.integrate(tend, c0, params, atol=1e-15, rtol=1e-15, integrator='cvode', nsteps=16000)
     assert result.info['success']
 
     def analytic_H(t, p, k, H0):
         # dH/dt = p - k2*H**2
-        x0 = np.sqrt(2)*np.sqrt(p)
+        x0 = np.sqrt(2) * np.sqrt(p)
         x1 = x0
         x2 = np.sqrt(k)
-        x3 = t*x1*x2
-        x4 = H0*x2
-        x5 = np.sqrt(x0 + 2*x4)
-        x6 = np.sqrt(-1/(2*H0*x2 - x0))
-        x7 = x5*x6*np.exp(x3)
-        x8 = np.exp(-x3)/(x5*x6)
-        return x1*(x7 - x8)/(2*x2*(x7 + x8))
+        x3 = t * x1 * x2
+        x4 = H0 * x2
+        x5 = np.sqrt(x0 + 2 * x4)
+        x6 = np.sqrt(-1 / (2 * H0 * x2 - x0))
+        x7 = x5 * x6 * np.exp(x3)
+        x8 = np.exp(-x3) / (x5 * x6)
+        return x1 * (x7 - x8) / (2 * x2 * (x7 + x8))
 
     t_ul = to_unitless(result.xout, u.s)
-    p_ul = to_unitless(params['p'], u.micromolar/u.s)
+    p_ul = to_unitless(params['p'], u.micromolar / u.s)
     ref_H_uM = analytic_H(
         t_ul,
         p_ul,
-        to_unitless(params['k2'], 1/u.micromolar/u.s),
+        to_unitless(params['k2'], 1 / u.micromolar / u.s),
         to_unitless(c0['H'], u.micromolar)
     )
-    ref_H2_uM = to_unitless(c0['H2'], u.micromolar) + to_unitless(c0['H'], u.micromolar)/2 + t_ul*p_ul/2 - ref_H_uM/2
+    ref_H2_uM = (to_unitless(c0['H2'], u.micromolar)
+                 + to_unitless(c0['H'], u.micromolar) / 2
+                 + t_ul * p_ul / 2 - ref_H_uM / 2)
     assert np.allclose(to_unitless(result.named_dep('H'), u.micromolar), ref_H_uM)
     assert np.allclose(to_unitless(result.named_dep('H2'), u.micromolar), ref_H2_uM)
 
@@ -160,21 +162,21 @@ def test_get_native__conc_roots():
     rsys = ReactionSystem.from_string("2 O3 -> 3 O2; 'k2'")
     u_reg = SI_base_registry.copy()
     odesys, extra = get_odesys(rsys, include_params=False, unit_registry=u_reg)
-    c0 = {'O3': 4.2e-3*M, 'O2': 0*M}
+    c0 = {'O3': 4.2e-3 * M, 'O2': 0 * M}
     cr = ['O2']
     native = get_native(rsys, odesys, 'cvode', conc_roots=cr)
-    tend = 1e5*u.s
-    params = {'k2': logspace_from_lin(1e-3/M/s, 1e3/M/s, 14)}
-    tgt_O2 = 1e-3*M
+    tend = 1e5 * u.s
+    params = {'k2': logspace_from_lin(1e-3 / M / s, 1e3 / M / s, 14)}
+    tgt_O2 = 1e-3 * M
     results = native.integrate(tend, c0, params, integrator='native', return_on_root=True,
                                special_settings=[unitless_in_registry(tgt_O2, u_reg)])
     assert len(results) == params['k2'].size
-    # dydt = -p*y**2
-    # 1/y0 - 1/y = -2*pt
-    # t = 1/2/p*(1/y - 1/y0)
-    tgt_O3 = c0['O3'] - 2/3 * tgt_O2
+    # dydt = -p * y**2
+    # 1 / y0 - 1 / y = -2 * pt
+    # t = 1 / 2 / p * (1 / y - 1 / y0)
+    tgt_O3 = c0['O3'] - 2 / 3 * tgt_O2
     for r in results:
-        ref = rescale(1/2/r.named_param('k2')*(1/tgt_O3 - 1/c0['O3']), u.s)
+        ref = rescale(1 / 2 / r.named_param('k2') * (1 / tgt_O3 - 1 / c0['O3']), u.s)
         assert allclose(r.xout[-1], ref, rtol=1e-6)
 
 
@@ -187,17 +189,19 @@ def test_get_native__Radiolytic__named_parameter__units(scaling_density):
     -> H; Radiolytic(2*per100eV)
     H + H -> H2; 'k2'
     """, checks=('substance_keys', 'duplicate', 'duplicate_names'))
-    gval = 2*u.per100eV
+    gval = 2 * u.per100eV
 
     from pyodesys.symbolic import ScaledSys
     kwargs = {} if scaling == 1 else dict(SymbolicSys=ScaledSys, dep_scaling=scaling)
-    dens = {'density': 998*u.g/u.dm3}
-    odesys, extra = get_odesys(rsys, include_params=False, substitutions=dens if density else {},
+    dens = {'density': 998 * u.g / u.dm3}
+    odesys, extra = get_odesys(rsys,
+                               include_params=False,
+                               substitutions=dens if density else {},
                                unit_registry=SI_base_registry, **kwargs)
-    c0 = {'H': 42e-6*u.molar, 'H2': 17e3*u.nanomolar}
+    c0 = {'H': 42e-6 * u.molar, 'H2': 17e3 * u.nanomolar}
     native = get_native(rsys, odesys, 'cvode')
-    tend = 7*60*u.minute
-    params = {'doserate': 314*u.Gy/u.hour, 'k2': 53/u.molar/u.minute}
+    tend = 7 * 60 * u.minute
+    params = {'doserate': 314 * u.Gy / u.hour, 'k2': 53 / u.molar / u.minute}
     if not density:
         params.update(dens)
     result = native.integrate(tend, c0, params, atol=1e-15, rtol=1e-15, integrator='cvode', nsteps=8000)
@@ -205,25 +209,27 @@ def test_get_native__Radiolytic__named_parameter__units(scaling_density):
 
     def analytic_H(t, p, k, H0):
         # dH/dt = p - k2*H**2
-        x0 = np.sqrt(2)*np.sqrt(p)
+        x0 = np.sqrt(2) * np.sqrt(p)
         x1 = x0
         x2 = np.sqrt(k)
-        x3 = t*x1*x2
-        x4 = H0*x2
-        x5 = np.sqrt(x0 + 2*x4)
-        x6 = np.sqrt(-1/(2*H0*x2 - x0))
-        x7 = x5*x6*np.exp(x3)
-        x8 = np.exp(-x3)/(x5*x6)
-        return x1*(x7 - x8)/(2*x2*(x7 + x8))
+        x3 = t * x1 * x2
+        x4 = H0 * x2
+        x5 = np.sqrt(x0 + 2 * x4)
+        x6 = np.sqrt(-1 / (2 * H0 * x2 - x0))
+        x7 = x5 * x6 * np.exp(x3)
+        x8 = np.exp(-x3) / (x5 * x6)
+        return x1 * (x7 - x8) / (2 * x2 * (x7 + x8))
 
     t_ul = to_unitless(result.xout, u.s)
-    p_ul = to_unitless(params['doserate']*dens['density']*gval, u.micromolar/u.s)
+    p_ul = to_unitless(params['doserate'] * dens['density'] * gval, u.micromolar / u.s)
     ref_H_uM = analytic_H(
         t_ul,
         p_ul,
-        to_unitless(params['k2'], 1/u.micromolar/u.s),
+        to_unitless(params['k2'], 1 / u.micromolar / u.s),
         to_unitless(c0['H'], u.micromolar)
     )
-    ref_H2_uM = to_unitless(c0['H2'], u.micromolar) + to_unitless(c0['H'], u.micromolar)/2 + t_ul*p_ul/2 - ref_H_uM/2
+    ref_H2_uM = (to_unitless(c0['H2'], u.micromolar)
+                 + to_unitless(c0['H'], u.micromolar) / 2
+                 + t_ul * p_ul / 2 - ref_H_uM / 2)
     assert np.allclose(to_unitless(result.named_dep('H'), u.micromolar), ref_H_uM)
     assert np.allclose(to_unitless(result.named_dep('H2'), u.micromolar), ref_H2_uM)
